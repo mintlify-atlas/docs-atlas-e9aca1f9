@@ -26,6 +26,7 @@ A complete listing entry looks like:
     "source": "Simplify",
     "company_url": "",
     "date_updated": 1690430400,
+    "sponsorship": null,
     "id": "98b2d671-3f03-430e-b18c-e5ddb8ce5035"
 }
 ```
@@ -126,6 +127,17 @@ A complete listing entry looks like:
   
   Example:
   - `"98b2d671-3f03-430e-b18c-e5ddb8ce5035"`
+</ParamField>
+
+<ParamField path="sponsorship" type="string | null">
+  Sponsorship status of the position.
+  
+  Values:
+  - `null` or not present - Sponsorship status unknown or not specified
+  - `"No sponsorship"` - Position does not offer visa sponsorship
+  - `"US Citizenship Required"` - Position requires U.S. citizenship
+  
+  This field controls the display of 🛂 and 🇺🇸 icons in the README.
 </ParamField>
 
 ## Additional Metadata

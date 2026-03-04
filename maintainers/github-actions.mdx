@@ -7,11 +7,12 @@ The repository uses GitHub Actions to automate contribution processing, README g
 
 ## Overview
 
-Three main workflows handle the automation:
+Four main workflows handle the automation:
 
 1. **Contribution Approved** - Processes approved contribution issues
 2. **Update READMEs** - Regenerates README files from listings.json
-3. **Lint** - Validates Python code quality
+3. **Validate Listings** - Validates listings.json schema and data integrity
+4. **Lint** - Validates Python code quality
 
 ## Contribution Approved Workflow
 
@@ -160,6 +161,66 @@ Generated README tables follow this structure:
 | --- | --- | --- | :---: | :---: |
 | 🔥 **[Company](url)** | Job Title 🎓 | Location | Apply Button | 2d |
 ```
+
+## Validate Listings Workflow
+
+### File Location
+
+`.github/workflows/validate_listings.yml`
+
+### Triggers
+
+This workflow runs when:
+
+1. **`listings.json` is modified on push**
+   ```yaml
+   on:
+     push:
+       paths:
+         - '.github/scripts/listings.json'
+   ```
+
+2. **Pull requests modifying `listings.json`**
+   ```yaml
+   pull_request:
+     paths:
+       - '.github/scripts/listings.json'
+   ```
+
+### Process Flow
+
+<Steps>
+  <Step title="Set up Python">
+    Installs Python 3.12+ and uv package manager.
+  </Step>
+  
+  <Step title="Run validation">
+    Executes the listings validation command:
+    
+    ```bash
+    uv run main.py listings validate
+    ```
+  </Step>
+  
+  <Step title="Check for errors">
+    The workflow fails if validation finds:
+    - Missing required fields
+    - Invalid data types
+    - Duplicate URLs or IDs
+    - Invalid timestamps
+    - Invalid categories
+  </Step>
+</Steps>
+
+### What Gets Validated
+
+- **Schema compliance**: All required fields present with correct types
+- **Data integrity**: No duplicate URLs or IDs
+- **Timestamp validity**: Dates not in the future
+- **Category validity**: All categories match defined constants
+- **URL format**: Valid URLs for job postings
+
+This workflow acts as a quality gate, preventing invalid data from being merged into the main branch.
 
 ## Lint Workflow
 
