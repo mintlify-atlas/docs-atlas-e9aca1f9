@@ -1,0 +1,475 @@
+---
+title: "Testing"
+description: "Test the CLI tool locally"
+---
+
+This guide covers how to test the list-updater CLI tool during development.
+
+<Note>
+The project does not currently have automated unit tests. All testing is done manually using the CLI commands.
+</Note>
+
+## Pre-flight validation
+
+Before making changes, always validate the current state:
+
+```bash
+uv run python main.py listings validate
+```
+
+This ensures your starting point is clean. If validation fails, fix issues first:
+
+```bash
+uv run python main.py listings fix
+```
+
+## Testing workflow
+
+### 1. Create a backup
+
+Before testing commands that modify data:
+
+```bash
+# Backup listings.json
+cp .github/scripts/listings.json .github/scripts/listings.json.bak
+
+# Backup READMEs
+cp README.md README.md.bak
+cp README-Inactive.md README-Inactive.md.bak
+cp README-Off-Season.md README-Off-Season.md.bak
+```
+
+### 2. Make your changes
+
+Edit code in `main.py` or `list_updater/` modules.
+
+### 3. Test the command
+
+Run your command with test data:
+
+```bash
+# Example: Test search command
+uv run python main.py listings search --company "Test"
+
+# Example: Test validation
+uv run python main.py listings validate
+
+# Example: Test stats
+uv run python main.py listings stats
+```
+
+### 4. Check the results
+
+For commands that modify files:
+
+```bash
+# View changes to listings.json
+git diff .github/scripts/listings.json
+
+# View changes to README
+git diff README.md
+```
+
+### 5. Restore if needed
+
+If something went wrong:
+
+```bash
+# Restore listings.json
+mv .github/scripts/listings.json.bak .github/scripts/listings.json
+
+# Restore READMEs
+mv README.md.bak README.md
+mv README-Inactive.md.bak README-Inactive.md
+mv README-Off-Season.md.bak README-Off-Season.md
+```
+
+## Testing specific commands
+
+### README commands
+
+**Test README generation:**
+
+<Steps>
+  <Step title="Backup READMEs">
+    ```bash
+    cp README.md README.md.bak
+    cp README-Inactive.md README-Inactive.md.bak
+    cp README-Off-Season.md README-Off-Season.md.bak
+    ```
+  </Step>
+
+  <Step title="Run update command">
+    ```bash
+    uv run python main.py readme update
+    ```
+  </Step>
+
+  <Step title="Review changes">
+    ```bash
+    git diff README.md
+    git diff README-Inactive.md
+    git diff README-Off-Season.md
+    ```
+    
+    Check for:
+    - Correct category sections
+    - Proper emoji indicators (🔥, 🎓, 🛂, 🇺🇸)
+    - Accurate company links
+    - Correct sorting (by company name)
+    - File size warnings if approaching GitHub limit
+  </Step>
+
+  <Step title="Restore if needed">
+    ```bash
+    mv README.md.bak README.md
+    mv README-Inactive.md.bak README-Inactive.md
+    mv README-Off-Season.md.bak README-Off-Season.md
+    ```
+  </Step>
+</Steps>
+
+### Validation commands
+
+**Test validation:**
+
+```bash
+uv run python main.py listings validate
+```
+
+Expect output showing:
+- Error count (missing fields, duplicates, empty values)
+- Warning count (invalid categories, blocked companies)
+- Total listings checked
+
+**Test validation with fix flag:**
+
+```bash
+uv run python main.py listings validate --fix
+```
+
+Currently has limited auto-fix capability. Use `fix` command instead.
+
+### Interactive fix command
+
+**Test fix in dry-run mode:**
+
+```bash
+uv run python main.py listings fix --dry-run
+```
+
+This shows what would be fixed without saving changes.
+
+**Test specific issue types:**
+
+```bash
+# Only empty fields
+uv run python main.py listings fix --type empty --dry-run
+
+# Only duplicates
+uv run python main.py listings fix --type duplicate --dry-run
+
+# Only blocked companies
+uv run python main.py listings fix --type blocked --dry-run
+```
+
+**Test auto-fix mode:**
+
+```bash
+uv run python main.py listings fix --auto --dry-run
+```
+
+Verify that recommended fixes are sensible:
+- Empty titles → generated from category
+- Invalid categories → ML classification or "Other"
+- Duplicates → kept Simplify-sourced or newest
+- Blocked companies → hidden
+
+### Search commands
+
+**Test basic search:**
+
+```bash
+uv run python main.py listings search --company "Google"
+```
+
+**Test with multiple filters:**
+
+```bash
+uv run python main.py listings search --company "Meta" --category "Software" --active
+```
+
+**Test limit:**
+
+```bash
+uv run python main.py listings search --limit 5
+```
+
+Verify:
+- Results match filter criteria
+- Output formatting is correct (emoji status, category, dates)
+- Limit is respected
+
+### Stats commands
+
+**Test formatted output:**
+
+```bash
+uv run python main.py listings stats
+```
+
+Verify:
+- Counts are accurate (active, inactive, visible, hidden)
+- Category breakdown includes all categories
+- Top companies list is reasonable
+- Percentages are correct
+
+**Test JSON output:**
+
+```bash
+uv run python main.py listings stats --json
+```
+
+Verify:
+- Valid JSON format
+- All fields present
+- Can be parsed by other tools: `uv run python main.py listings stats --json | python -m json.tool`
+
+### Diff commands
+
+**Test default diff (last commit):**
+
+```bash
+uv run python main.py listings diff
+```
+
+Requires being in a git repository with commit history.
+
+**Test date-based diff:**
+
+```bash
+uv run python main.py listings diff --since "2025-01-01"
+```
+
+Verify:
+- Shows listings added since date
+- Shows listings updated since date
+- Dates are parsed correctly
+
+**Test commit-based diff:**
+
+```bash
+uv run python main.py listings diff --commit HEAD~5
+```
+
+Verify:
+- Shows additions, removals, status changes
+- Correctly identifies what changed
+
+### Remove commands
+
+**Test mark inactive (default):**
+
+```bash
+# Backup first
+cp .github/scripts/listings.json .github/scripts/listings.json.bak
+
+# Test remove
+uv run python main.py listings remove --url "https://example.com/job/123"
+
+# Verify
+grep -A 10 "example.com/job/123" .github/scripts/listings.json
+# Should show "active": false
+
+# Restore
+mv .github/scripts/listings.json.bak .github/scripts/listings.json
+```
+
+**Test hide:**
+
+```bash
+uv run python main.py listings remove --url "https://example.com/job/123" --hide
+
+# Verify: should show "is_visible": false
+grep -A 10 "example.com/job/123" .github/scripts/listings.json
+```
+
+**Test permanent delete:**
+
+```bash
+uv run python main.py listings remove --url "https://example.com/job/123" --permanent --confirm
+
+# Verify: URL should not exist
+grep "example.com/job/123" .github/scripts/listings.json
+# Should return nothing
+```
+
+<Note>
+Permanent deletion cannot be undone. Always backup first and use a test URL.
+</Note>
+
+## Testing with test data
+
+Create a minimal test listings.json for isolated testing:
+
+```bash
+# Backup production data
+cp .github/scripts/listings.json .github/scripts/listings.json.prod
+
+# Create test data
+cat > .github/scripts/listings.json << 'EOF'
+[
+  {
+    "company_name": "Test Corp",
+    "company_url": "",
+    "title": "Software Engineering Intern",
+    "date_posted": 1704067200,
+    "date_updated": 1704067200,
+    "url": "https://testcorp.com/job/1",
+    "terms": ["Summer 2026"],
+    "locations": ["San Francisco, CA"],
+    "active": true,
+    "is_visible": true,
+    "source": "test_user",
+    "id": "00000000-0000-0000-0000-000000000001",
+    "category": "Software Engineering",
+    "sponsorship": "Offers Sponsorship",
+    "degrees": ["Bachelor's"]
+  }
+]
+EOF
+
+# Test commands with minimal data
+uv run python main.py listings stats
+uv run python main.py listings validate
+uv run python main.py readme update
+
+# Restore production data
+mv .github/scripts/listings.json.prod .github/scripts/listings.json
+```
+
+## Code quality checks
+
+Always run before committing:
+
+```bash
+# Lint
+uv run ruff check .
+
+# Format
+uv run ruff format .
+
+# Type check
+uv run mypy .
+
+# Or run all at once
+uv run task check
+```
+
+## Common issues
+
+### Command not found
+
+```
+Error: No such command "listing"
+```
+
+**Fix:** Use correct command group name (`listings` not `listing`)
+
+### Module import errors
+
+```
+ModuleNotFoundError: No module named 'list_updater'
+```
+
+**Fix:** Ensure you're running from repository root and dependencies are installed:
+```bash
+cd /path/to/Summer2026-Internships
+uv sync
+```
+
+### Type errors from mypy
+
+```
+error: Argument 1 has incompatible type "str | None"; expected "str"
+```
+
+**Fix:** Add type guards:
+```python
+if company is not None:
+    filter_by_company(company)
+```
+
+### Validation failures
+
+```
+❌ ERRORS (5):
+  - [Acme Corp] Empty title
+  - Duplicate URL found 2 times
+```
+
+**Fix:** Run interactive fix:
+```bash
+uv run python main.py listings fix
+```
+
+## Best practices
+
+- **Always backup** before testing destructive commands
+- **Use dry-run** when available (`--dry-run` flag)
+- **Test with small datasets** to catch issues quickly
+- **Validate after changes** to ensure data integrity
+- **Check git diff** to see what actually changed
+- **Run code quality checks** before committing
+- **Test in clean environment** using fresh git clone if issues persist
+
+## Integration testing
+
+Test the full workflow:
+
+<Steps>
+  <Step title="Start with clean state">
+    ```bash
+    git status  # Should be clean
+    uv run python main.py listings validate
+    ```
+  </Step>
+
+  <Step title="Make a change">
+    Edit a listing manually in `.github/scripts/listings.json` or use a command
+  </Step>
+
+  <Step title="Validate changes">
+    ```bash
+    uv run python main.py listings validate
+    ```
+  </Step>
+
+  <Step title="Update READMEs">
+    ```bash
+    uv run python main.py readme update
+    ```
+  </Step>
+
+  <Step title="Check results">
+    ```bash
+    git diff
+    ```
+    
+    Verify README changes reflect your edit
+  </Step>
+
+  <Step title="Verify stats">
+    ```bash
+    uv run python main.py listings stats
+    ```
+    
+    Counts should be consistent
+  </Step>
+</Steps>
+
+## Related documentation
+
+- [Project Structure](/cli/development/project-structure) - Understand the codebase
+- [Contributing](/cli/development/contributing) - Development workflow and guidelines
+- [Commands reference](/cli/commands/listings) - Command documentation

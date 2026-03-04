@@ -1,0 +1,114 @@
+---
+title: "Contribution commands"
+description: "Process contribution issues from GitHub"
+---
+
+The `contribution` command group processes approved contribution issues from GitHub to add or edit internship listings.
+
+## process
+
+Process an approved contribution issue (new or edit internship).
+
+```bash
+uv run python main.py contribution process <event_file>
+```
+
+<ParamField path="event_file" type="Path" required>
+  Path to the GitHub event JSON file (typically `$GITHUB_EVENT_PATH`)
+</ParamField>
+
+### What it does
+
+This command:
+
+1. **Reads the GitHub issue** - Parses the event JSON file
+2. **Detects issue type** - Determines if it's a new listing, edit, or bulk inactive
+3. **Extracts form data** - Parses issue body for all fields:
+   - Company name
+   - Internship title
+   - Location(s)
+   - Application URL
+   - Category
+   - Sponsorship status
+   - Active status
+   - Advanced degree requirements
+   - Terms (Summer 2026, etc.)
+4. **Updates listings.json** - Adds new listing or updates existing one
+5. **Sets GitHub outputs** - Provides commit message and attribution
+
+### Supported issue types
+
+The command handles three types of approved issues:
+
+- **new_internship** - Adds a new listing
+- **edit_internship** - Updates an existing listing by URL
+- **bulk_mark_inactive** - Marks multiple listings as inactive (delegates to `listings mark-inactive`)
+
+### New internship flow
+
+When processing a new internship:
+
+1. Generates a unique UUID for the listing
+2. Sets `date_posted` to current timestamp
+3. Sets `source` to the GitHub username of contributor
+4. Auto-classifies category from job title if not provided
+5. Validates that URL doesn't already exist
+6. Appends to listings.json
+
+### Edit internship flow
+
+When processing an edit:
+
+1. Finds existing listing by URL
+2. Updates only the fields provided in the issue
+3. Sets `date_updated` to current timestamp
+4. Preserves original `date_posted`, `source`, and `id`
+
+### Category classification
+
+If category is not provided for a new internship, the tool automatically classifies based on the job title:
+
+- Titles with "software", "backend", "frontend", "full stack" → Software Engineering
+- Titles with "product manager", "APM" → Product Management  
+- Titles with "data", "ML", "machine learning" → Data Science
+- Titles with "quant", "trading" → Quantitative Finance
+- Titles with "hardware", "embedded", "firmware" → Hardware Engineering
+- Otherwise → Other
+
+### GitHub Actions integration
+
+This command is used in the "Contribution Approved" workflow:
+
+```yaml
+- name: Process contribution
+  run: uv run main.py contribution process $GITHUB_EVENT_PATH
+```
+
+### GitHub outputs
+
+The command sets these output variables for use in the workflow:
+
+- `commit_message` - Formatted commit message (e.g., "added listing: Software Engineer at Google")
+- `commit_email` - Contributor's email for attribution
+- `commit_username` - Contributor's GitHub username
+
+### Error handling
+
+If the command fails, it:
+
+- Outputs error message via GitHub Actions `error_message` output
+- Prints detailed error to console
+- Exits with error code for workflow failure
+
+Common errors:
+
+- **Duplicate listing** - URL already exists (for new internship issues)
+- **Not found** - URL not found in database (for edit issues)  
+- **Invalid issue type** - Issue doesn't have new_internship, edit_internship, or bulk_mark_inactive label
+- **Parse error** - Issue body format is invalid
+
+## Related commands
+
+- [listings mark-inactive](/cli/commands/listings#mark-inactive) - Bulk mark listings as inactive
+- [listings validate](/cli/commands/listings#validate) - Validate data after processing
+- [readme update](/cli/commands/readme#update) - Update READMEs after processing

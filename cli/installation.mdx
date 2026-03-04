@@ -1,0 +1,70 @@
+---
+title: "Installation"
+description: "Install the list-updater CLI tool"
+---
+
+The list-updater CLI tool helps you manage internship listings, update README files, and process contributions from GitHub issues.
+
+## Requirements
+
+Before installing the CLI tool, ensure you have:
+
+- **Python 3.12+** - The tool requires Python version 3.12 or higher
+- **[uv](https://docs.astral.sh/uv/)** - A fast Python package manager
+
+## Installation Steps
+
+<Steps>
+  <Step title="Navigate to repository root">
+    Open your terminal and navigate to the repository root directory:
+    
+    ```bash
+    cd path/to/Summer2026-Internships
+    ```
+  </Step>
+
+  <Step title="Install dependencies with uv">
+    Run the following command to install all dependencies:
+    
+    ```bash
+    uv sync
+    ```
+    
+    This will:
+    - Install the `list-updater` package and its dependencies
+    - Install development dependencies (ruff, mypy, taskipy)
+    - Set up the project environment
+  </Step>
+
+  <Step title="Verify installation">
+    Test that the CLI is working by running the help command:
+    
+    ```bash
+    uv run python main.py --help
+    ```
+    
+    You should see the list of available command groups:
+    - `readme` - README operations
+    - `contribution` - Contribution processing
+    - `listings` - Listings management and analytics
+  </Step>
+</Steps>
+
+## What's Installed
+
+The installation includes:
+
+- **Main CLI tool** (`main.py`) - Entry point with all commands
+- **Core library** (`list_updater/`) - Implementation modules
+- **Development tools**:
+  - `ruff` - Python linter and formatter
+  - `mypy` - Static type checker
+  - `taskipy` - Task runner
+
+## Next Steps
+
+Now that you have the CLI installed, you can:
+
+- Follow the [Quickstart guide](/cli/quickstart) to learn basic usage
+- Explore [README commands](/cli/commands/readme) for updating documentation
+- Check out [Listings commands](/cli/commands/listings) for data management

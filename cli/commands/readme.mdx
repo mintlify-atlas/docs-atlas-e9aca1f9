@@ -1,0 +1,71 @@
+---
+title: "README commands"
+description: "Update README files from listings.json"
+---
+
+The `readme` command group handles updating all README files from the listings.json data.
+
+## update
+
+Update README files from listings.json.
+
+```bash
+uv run python main.py readme update
+```
+
+### What it does
+
+This command performs several operations:
+
+1. **Loads listings data** - Reads `.github/scripts/listings.json`
+2. **Validates schema** - Ensures all required fields are present
+3. **Sorts listings** - Orders internships appropriately
+4. **Filters by season** - Separates Summer 2026 and off-season positions
+5. **Generates README files**:
+   - `README.md` - Active Summer 2026 internships only
+   - `README-Inactive.md` - Inactive Summer 2026 internships
+   - `README-Off-Season.md` - Fall, Winter, and Spring positions
+
+### Listing categorization
+
+Internships are automatically categorized into sections:
+
+- **Software Engineering** - Software development, full-stack, frontend, backend, mobile
+- **Product Management** - Product manager, APM roles
+- **Data Science, AI & Machine Learning** - Data science, ML, AI research
+- **Quantitative Finance** - Quant trading, quant research
+- **Hardware Engineering** - Hardware design, embedded systems, firmware
+- **Other** - Tech-related internships that don't fit above categories
+
+### Special indicators
+
+The generated READMEs include visual indicators:
+
+- 🔥 **FAANG+ companies** - Google, Meta, Apple, Amazon, Microsoft, etc.
+- 🎓 **Advanced degree required** - Master's, MBA, or PhD
+- 🛂 **No sponsorship** - Does not offer visa sponsorship
+- 🇺🇸 **U.S. citizenship required** - Restricted to U.S. citizens
+
+### Example output
+
+The generated README tables look like:
+
+| Company | Role | Location | Application | Age |
+| --- | --- | --- | :---: | :---: |
+| 🔥 **[Google](https://google.com)** | Software Engineering Internship 🎓 | San Francisco, CA | Apply button | 2d |
+
+### GitHub Actions integration
+
+This command is used in the "Update READMEs" workflow:
+
+```yaml
+- name: Update READMEs
+  run: uv run main.py readme update
+```
+
+The command sets a GitHub Actions output variable `commit_message` with a timestamp for the commit message.
+
+## Related commands
+
+- [listings validate](/cli/commands/listings#validate) - Check data quality before updating
+- [listings stats](/cli/commands/listings#stats) - View statistics about listings

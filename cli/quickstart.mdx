@@ -1,0 +1,157 @@
+---
+title: "Quickstart"
+description: "Get started with the list-updater CLI in minutes"
+---
+
+This guide will help you get started with the list-updater CLI tool quickly.
+
+## Basic Usage
+
+The CLI uses a grouped command structure:
+
+```bash
+uv run python main.py <group> <command> [options]
+```
+
+The tool is organized into three main command groups:
+- **readme** - Update README files from listings data
+- **contribution** - Process contribution issues from GitHub
+- **listings** - Manage, search, and validate internship listings
+
+## Getting Help
+
+<Steps>
+  <Step title="View all available commands">
+    ```bash
+    uv run python main.py --help
+    ```
+    
+    This shows all command groups and their descriptions.
+  </Step>
+
+  <Step title="View commands in a specific group">
+    ```bash
+    uv run python main.py listings --help
+    ```
+    
+    This shows all commands available in the `listings` group.
+  </Step>
+
+  <Step title="View help for a specific command">
+    ```bash
+    uv run python main.py listings search --help
+    ```
+    
+    This shows detailed help for the `search` command, including all options and flags.
+  </Step>
+</Steps>
+
+## Common Examples
+
+Here are some common tasks you can perform with the CLI:
+
+### Update README Files
+
+Update all README files from the listings.json data:
+
+```bash
+uv run python main.py readme update
+```
+
+This command:
+- Generates the main README with active listings
+- Creates README-Inactive.md with inactive listings
+- Creates README-Off-Season.md with off-season positions
+- Validates the data schema before updating
+
+### Show Statistics
+
+Get a summary of all internship listings:
+
+```bash
+uv run python main.py listings stats
+```
+
+This displays:
+- Total listings count
+- Active vs inactive breakdown
+- Category distribution
+- Top companies by listing count
+- Sponsorship breakdown
+
+For JSON output (useful for scripting):
+
+```bash
+uv run python main.py listings stats --json
+```
+
+### Search Listings
+
+Search for internships by company:
+
+```bash
+uv run python main.py listings search --company "Google"
+```
+
+Search for active remote positions:
+
+```bash
+uv run python main.py listings search --location "Remote" --active
+```
+
+Search by category with custom limit:
+
+```bash
+uv run python main.py listings search --category "Software" --active --limit 50
+```
+
+### Validate Data
+
+Check for issues in listings.json:
+
+```bash
+uv run python main.py listings validate
+```
+
+This checks for:
+- Missing required fields
+- Duplicate URLs or IDs
+- Invalid categories
+- Schema violations
+- Blocked companies
+
+To automatically fix issues:
+
+```bash
+uv run python main.py listings validate --fix
+```
+
+### View Recent Changes
+
+See what changed in the last commit:
+
+```bash
+uv run python main.py listings diff
+```
+
+See changes since a specific date:
+
+```bash
+uv run python main.py listings diff --since "2025-01-01"
+```
+
+See changes since a specific commit:
+
+```bash
+uv run python main.py listings diff --commit abc123
+```
+
+## What's Next
+
+Now that you know the basics, explore the detailed documentation:
+
+- [README Commands](/cli/commands/readme) - Learn about README generation
+- [Contribution Commands](/cli/commands/contribution) - Process GitHub issues
+- [Listings Commands](/cli/commands/listings) - Master data management
+- [Project Structure](/cli/development/project-structure) - Understand the codebase
+- [Contributing](/cli/development/contributing) - Help improve the CLI

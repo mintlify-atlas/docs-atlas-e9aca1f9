@@ -1,0 +1,111 @@
+---
+title: 'Add an internship'
+description: 'Submit a new internship to the list'
+---
+
+Ready to add an internship to the list? Follow these steps to submit a new internship posting.
+
+## Requirements for Valid Submissions
+
+Before submitting, ensure your internship meets these requirements:
+
+### Category Requirements
+
+The internship must be in one of the following categories:
+- **Software Engineering** - Software development, computer engineering, full-stack, frontend, backend, mobile development
+- **Product Management** - Product manager, associate product manager (APM), product analyst roles
+- **Data Science, AI & Machine Learning** - Data science, machine learning, AI research, data engineering, analytics
+- **Quantitative Finance** - Quantitative trading, quantitative research, fintech engineering
+- **Hardware Engineering** - Hardware design, embedded systems, firmware, FPGA, circuit design
+- **Other** - Any other tech-related internships that don't fit the above categories
+
+### Location Requirements
+
+The internship must be:
+- Located in the United States
+- Located in Canada
+- Remote (work from anywhere)
+
+### Uniqueness
+
+The internship must not already exist in the internship list.
+
+### Application System
+
+The company must use a formal ATS (Applicant Tracking System) such as:
+- Workday
+- Greenhouse
+- Ashby
+- Other recognized ATS platforms
+
+<Warning>
+  Companies using non-ATS platforms such as forms or surveys must be verified/approved on Simplify.
+</Warning>
+
+## Submission Process
+
+<Steps>
+  <Step title="Create a new issue">
+    Go to the [issues page](https://github.com/SimplifyJobs/Summer2026-Internships/issues/new/choose) and click "New issue".
+  </Step>
+  
+  <Step title="Select the New Internship template">
+    Choose the **New Internship** issue template from the available options.
+  </Step>
+  
+  <Step title="Fill in the form">
+    Complete all required fields:
+    - **Category**: Choose the appropriate category from the dropdown (Software Engineering, Product Management, etc.)
+    - **Advanced Degree Requirements**: Check this box if the internship specifically requires or prefers Master's, MBA, or PhD degrees
+    - **Company name**: The name of the hiring company
+    - **Job title**: The title of the internship position
+    - **Location**: Where the internship is located
+    - **Application URL**: Direct link to the application page
+    - All other required fields
+  </Step>
+  
+  <Step title="Submit">
+    Click the "Submit new issue" button.
+  </Step>
+</Steps>
+
+<Note>
+  Please make a new submission for each unique position, **even if they are for the same company**.
+</Note>
+
+## What Happens After Submission
+
+<Steps>
+  <Step title="Review">
+    A member of the team reviews your submission to ensure it meets all requirements.
+  </Step>
+  
+  <Step title="Approval">
+    Once approved, the maintainer adds an `approved` label to your issue.
+  </Step>
+  
+  <Step title="Automatic processing">
+    A GitHub Action automatically:
+    - Extracts the data from your issue
+    - Adds it to `listings.json`
+    - Updates the appropriate README with proper categorization and degree indicators
+    - Closes the issue
+  </Step>
+  
+  <Step title="Live in README">
+    Your internship appears in the README with:
+    - Proper category section
+    - Special indicators (🔥 for FAANG+, 🎓 for advanced degrees, etc.)
+    - Your GitHub username as the contributor attribution
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+If the GitHub Action fails, it will comment on your issue with error details. Common issues include:
+- Invalid category selection
+- Duplicate internship URL
+- Missing required fields
+- Formatting errors
+
+If you encounter issues, respond to the comment or create a [miscellaneous issue](https://github.com/SimplifyJobs/Summer2026-Internships/issues/new/choose) for help.

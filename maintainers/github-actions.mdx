@@ -1,0 +1,296 @@
+---
+title: 'GitHub Actions workflows'
+description: 'Automated workflows for processing contributions'
+---
+
+The repository uses GitHub Actions to automate contribution processing, README generation, and code quality checks.
+
+## Overview
+
+Three main workflows handle the automation:
+
+1. **Contribution Approved** - Processes approved contribution issues
+2. **Update READMEs** - Regenerates README files from listings.json
+3. **Lint** - Validates Python code quality
+
+## Contribution Approved Workflow
+
+### File Location
+
+`.github/workflows/contribution_approved.yml`
+
+### Trigger
+
+This workflow runs when an `approved` label is added to any issue.
+
+```yaml
+on:
+  issues:
+    types: [labeled]
+```
+
+### Process Flow
+
+<Steps>
+  <Step title="Label detection">
+    Workflow checks if the added label is `approved`. If not, workflow exits.
+  </Step>
+  
+  <Step title="Extract issue data">
+    Reads the issue form data from the GitHub event payload.
+  </Step>
+  
+  <Step title="Run CLI command">
+    Executes `main.py contribution process` with the event data.
+    
+    ```bash
+    uv run main.py contribution process $GITHUB_EVENT_PATH
+    ```
+  </Step>
+  
+  <Step title="Update listings.json">
+    The CLI tool:
+    - Parses the issue form fields
+    - Validates the data
+    - Adds or updates the entry in `listings.json`
+    - Generates a commit message
+  </Step>
+  
+  <Step title="Commit changes">
+    Commits the updated `listings.json` with contributor attribution:
+    - Author: Contributor's GitHub username
+    - Email: Contributor's GitHub email
+    - Message: Describes what was added/changed
+  </Step>
+  
+  <Step title="Close issue">
+    Automatically closes the issue with a success comment.
+  </Step>
+</Steps>
+
+### Error Handling
+
+If the workflow fails:
+1. The action comments on the issue with error details
+2. The issue remains open for maintainer review
+3. Error messages indicate what went wrong (invalid data, duplicate, etc.)
+
+### GitHub Outputs
+
+The CLI sets GitHub Action outputs:
+
+- `commit_message`: Suggested commit message
+- `commit_email`: Contributor email for git attribution
+- `commit_username`: Contributor username for git attribution
+- `error_message`: Error details if processing failed
+
+## Update READMEs Workflow
+
+### File Location
+
+`.github/workflows/update_readmes.yml`
+
+### Triggers
+
+This workflow runs when:
+
+1. **`listings.json` is modified**
+   ```yaml
+   on:
+     push:
+       paths:
+         - '.github/scripts/listings.json'
+   ```
+
+2. **Manual workflow dispatch**
+   - Can be triggered manually from GitHub Actions tab
+   - Useful for regenerating READMEs after template changes
+
+### Process Flow
+
+<Steps>
+  <Step title="Read listings.json">
+    Loads all internship data from `.github/scripts/listings.json`.
+  </Step>
+  
+  <Step title="Categorize internships">
+    Groups internships by category:
+    - Software Engineering
+    - Product Management
+    - Data Science, AI & Machine Learning
+    - Quantitative Finance
+    - Hardware Engineering
+    - Other
+  </Step>
+  
+  <Step title="Generate README tables">
+    Runs `main.py readme update` to create markdown tables with:
+    - Company name (with 🔥 for FAANG+)
+    - Role (with 🎓 for advanced degrees)
+    - Locations
+    - Apply button
+    - Age (how long ago posted)
+  </Step>
+  
+  <Step title="Apply filters">
+    Only includes listings where:
+    - `is_visible` is `true`
+    - `active` is `true` (for main README)
+  </Step>
+  
+  <Step title="Sort listings">
+    Sorts by:
+    1. Company name (alphabetically)
+    2. Date posted (newest first)
+  </Step>
+  
+  <Step title="Commit and push">
+    Commits the updated README files and pushes to the repository.
+  </Step>
+</Steps>
+
+### README Format
+
+Generated README tables follow this structure:
+
+```markdown
+## Category Name
+
+| Company | Role | Location | Application | Age |
+| --- | --- | --- | :---: | :---: |
+| 🔥 **[Company](url)** | Job Title 🎓 | Location | Apply Button | 2d |
+```
+
+## Lint Workflow
+
+### File Location
+
+`.github/workflows/lint.yml`
+
+### Trigger
+
+Runs on changes to Python code:
+
+```yaml
+on:
+  push:
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+  pull_request:
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+```
+
+### Process Flow
+
+<Steps>
+  <Step title="Set up Python">
+    Installs Python 3.12+ and uv package manager.
+  </Step>
+  
+  <Step title="Install dependencies">
+    Runs `uv sync` to install project dependencies.
+  </Step>
+  
+  <Step title="Run ruff">
+    Executes code style and formatting checks:
+    
+    ```bash
+    uv run ruff check .
+    uv run ruff format --check .
+    ```
+  </Step>
+  
+  <Step title="Run mypy">
+    Executes type checking:
+    
+    ```bash
+    uv run mypy .
+    ```
+  </Step>
+  
+  <Step title="Report results">
+    Displays any style violations or type errors.
+  </Step>
+</Steps>
+
+### What Gets Checked
+
+**Ruff checks:**
+- Code style (PEP 8 compliance)
+- Import sorting
+- Unused imports and variables
+- Line length
+- Code complexity
+
+**Mypy checks:**
+- Type annotations
+- Type correctness
+- Missing types
+- Type inference issues
+
+## CLI Integration
+
+All workflows use the CLI tool (`main.py`) for processing:
+
+### Contribution Processing
+
+```bash
+# Process an approved contribution issue
+uv run main.py contribution process $GITHUB_EVENT_PATH
+```
+
+This command:
+- Reads issue form data from event JSON
+- Validates submission
+- Updates `listings.json`
+- Sets GitHub Action outputs
+
+### README Update
+
+```bash
+# Regenerate all README files
+uv run main.py readme update
+```
+
+This command:
+- Reads `listings.json`
+- Categorizes and formats data
+- Writes updated README files
+
+## Workflow Secrets
+
+No secrets are required for these workflows. They use:
+- `GITHUB_TOKEN`: Automatically provided by GitHub Actions
+- Event payloads: Standard GitHub event data
+
+## Monitoring Workflows
+
+View workflow runs:
+1. Go to the repository's **Actions** tab
+2. Select a workflow from the sidebar
+3. View run history, logs, and status
+
+### Common Issues
+
+**Contribution Approved fails:**
+- Invalid issue form data
+- Duplicate internship URL
+- Missing required fields
+- Schema validation errors
+
+**Update READMEs fails:**
+- Malformed `listings.json`
+- Missing required fields in entries
+- Git conflicts
+
+**Lint fails:**
+- Code style violations
+- Type errors
+- Import errors
+
+<Note>
+  All workflow failures are visible in the Actions tab and will prevent the merge/deployment until resolved.
+</Note>

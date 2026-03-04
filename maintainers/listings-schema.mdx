@@ -1,0 +1,228 @@
+---
+title: 'Listings.json schema'
+description: 'Data structure for internship listings'
+---
+
+All internships are stored in `.github/scripts/listings.json`. This page documents the schema and structure of listing entries.
+
+## Overview
+
+The `listings.json` file contains an array of internship objects. Each object represents a single internship posting with all relevant metadata.
+
+## Schema Example
+
+A complete listing entry looks like:
+
+```json
+{
+    "company_name": "Capital One",
+    "locations": ["McLean, VA", "Plano, TX"],
+    "title": "Product Development Intern",
+    "date_posted": 1690430400,
+    "terms": ["Summer 2024"],
+    "active": true,
+    "url": "https://example.com/job/123",
+    "is_visible": true,
+    "source": "Simplify",
+    "company_url": "",
+    "date_updated": 1690430400,
+    "id": "98b2d671-3f03-430e-b18c-e5ddb8ce5035"
+}
+```
+
+## Field Reference
+
+<ParamField path="company_name" type="string" required>
+  Name of the hiring company.
+  
+  Examples:
+  - `"Google"`
+  - `"Capital One"`
+  - `"Jane Street"`
+</ParamField>
+
+<ParamField path="company_url" type="string">
+  Link to the company's Simplify page. This field is empty for community contributions.
+  
+  Examples:
+  - `"https://simplify.jobs/c/Google"`
+  - `""` (empty for community contributions)
+</ParamField>
+
+<ParamField path="title" type="string" required>
+  Name of the internship position.
+  
+  Examples:
+  - `"Software Engineering Internship"`
+  - `"Product Management Intern - MBA"`
+  - `"Machine Learning Research Intern"`
+</ParamField>
+
+<ParamField path="date_posted" type="integer" required>
+  Unix timestamp (in seconds) when the internship was added to the list.
+  
+  Example:
+  - `1690430400` (July 27, 2023)
+</ParamField>
+
+<ParamField path="date_updated" type="integer" required>
+  Unix timestamp (in seconds) when the listing was last updated.
+  
+  Example:
+  - `1690430400`
+</ParamField>
+
+<ParamField path="url" type="string" required>
+  Direct link to the job posting/application page.
+  
+  Examples:
+  - `"https://www.google.com/about/careers/applications/jobs/results/123"`
+  - `"https://capitalone.wd1.myworkdayjobs.com/Capital_One/job/123"`
+</ParamField>
+
+<ParamField path="terms" type="array<string>" required>
+  Array of terms/seasons when the internship is available.
+  
+  Examples:
+  - `["Summer 2024"]`
+  - `["Summer 2024", "Fall 2024"]`
+</ParamField>
+
+<ParamField path="locations" type="array<string>" required>
+  Array of office locations where the internship is offered.
+  
+  Examples:
+  - `["San Francisco, CA"]`
+  - `["McLean, VA", "Plano, TX", "New York, NY"]`
+  - `["Remote"]`
+  - `["Toronto, ON, Canada"]`
+</ParamField>
+
+<ParamField path="active" type="boolean" required>
+  Whether the application is currently open.
+  
+  - `true`: Application is open and accepting submissions
+  - `false`: Application is closed or position is filled
+</ParamField>
+
+<ParamField path="is_visible" type="boolean" required>
+  Whether the listing should appear in the README.
+  
+  - `true`: Visible in README tables
+  - `false`: Hidden from README (e.g., removed or spam)
+</ParamField>
+
+<ParamField path="source" type="string" required>
+  Origin of the listing.
+  
+  Examples:
+  - `"Simplify"` - Added by Simplify's automated system
+  - `"octocat"` - Added by GitHub user @octocat
+  - `"jane-doe"` - Added by GitHub user @jane-doe
+</ParamField>
+
+<ParamField path="id" type="string" required>
+  Unique identifier for the listing (UUID format).
+  
+  Example:
+  - `"98b2d671-3f03-430e-b18c-e5ddb8ce5035"`
+</ParamField>
+
+## Additional Metadata
+
+While not stored directly in `listings.json`, the following metadata is derived during README generation:
+
+### Category
+
+Determined by analyzing the job title and description:
+- Software Engineering
+- Product Management
+- Data Science, AI & Machine Learning
+- Quantitative Finance
+- Hardware Engineering
+- Other
+
+### Degree Requirements
+
+Indicated by 🎓 icon when the role:
+- Requires Master's, MBA, or PhD
+- Prefers advanced degrees
+- Is explicitly marked for graduate students
+
+### Company Tags
+
+- 🔥 FAANG+ companies (Google, Meta, Apple, Amazon, Microsoft, etc.)
+- 🛂 No sponsorship offered
+- 🇺🇸 U.S. citizenship required
+
+## Data Validation
+
+The CLI tool includes validation commands to ensure data integrity:
+
+```bash
+# Validate schema and data
+uv run python main.py listings validate
+
+# Validate and auto-fix issues
+uv run python main.py listings validate --fix
+```
+
+### Common Validation Checks
+
+- All required fields are present
+- Field types match schema (string, integer, boolean, array)
+- URLs are properly formatted
+- Timestamps are valid Unix timestamps
+- IDs are unique across all listings
+- URLs are unique (no duplicate postings)
+- Categories are valid
+- `active` and `is_visible` are boolean values
+
+## Working with the Schema
+
+### Reading Listings
+
+```python
+import json
+
+with open('.github/scripts/listings.json', 'r') as f:
+    listings = json.load(f)
+
+for listing in listings:
+    print(f"{listing['company_name']}: {listing['title']}")
+```
+
+### Adding a Listing
+
+```python
+import json
+import time
+import uuid
+
+new_listing = {
+    "company_name": "Example Corp",
+    "locations": ["Seattle, WA"],
+    "title": "Software Engineering Intern",
+    "date_posted": int(time.time()),
+    "terms": ["Summer 2026"],
+    "active": True,
+    "url": "https://example.com/careers/123",
+    "is_visible": True,
+    "source": "github-username",
+    "company_url": "",
+    "date_updated": int(time.time()),
+    "id": str(uuid.uuid4())
+}
+
+with open('.github/scripts/listings.json', 'r') as f:
+    listings = json.load(f)
+
+listings.append(new_listing)
+
+with open('.github/scripts/listings.json', 'w') as f:
+    json.dump(listings, f, indent=2)
+```
+
+<Warning>
+  Always use the CLI tool (`main.py contribution process`) rather than manually editing `listings.json` to ensure proper validation and formatting.
+</Warning>

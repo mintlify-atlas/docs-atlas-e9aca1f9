@@ -1,122 +1,106 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Summer 2026 Tech Internships",
+  "theme": "maple",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#4A90E2",
+    "light": "#6BADF5",
+    "dark": "#2E5C8A"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/SimplifyJobs/Summer2026-Internships"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/SimplifyJobs/Summer2026-Internships"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Internships",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction",
+              "browse-internships",
+              "zero-to-offer"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Internship Categories",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "categories/software-engineering",
+              "categories/product-management",
+              "categories/data-science",
+              "categories/quantitative-finance",
+              "categories/hardware-engineering"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Off-Season",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "off-season/overview",
+              "off-season/fall-winter-spring"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "Contributing",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "How to Contribute",
             "pages": [
-              "api-reference/introduction"
+              "contributing/overview",
+              "contributing/add-internship",
+              "contributing/edit-internship",
+              "contributing/guidelines"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Maintainers",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "maintainers/architecture",
+              "maintainers/listings-schema",
+              "maintainers/github-actions",
+              "maintainers/processing-issues"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "CLI Tool",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "cli/installation",
+              "cli/quickstart"
+            ]
+          },
+          {
+            "group": "Commands",
+            "pages": [
+              "cli/commands/readme",
+              "cli/commands/contribution",
+              "cli/commands/listings"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "cli/development/project-structure",
+              "cli/development/contributing",
+              "cli/development/testing"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

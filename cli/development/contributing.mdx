@@ -1,0 +1,390 @@
+---
+title: "Contributing to the CLI"
+description: "Develop and improve the list-updater tool"
+---
+
+This guide covers how to contribute code to the list-updater CLI tool itself.
+
+## Development setup
+
+Before you start, ensure you have:
+
+- **Python 3.12+** installed
+- **[uv](https://docs.astral.sh/uv/)** package manager installed
+- Git repository cloned
+
+### Install dependencies
+
+From the repository root:
+
+```bash
+uv sync
+```
+
+This installs both runtime and development dependencies:
+- `typer` - CLI framework
+- `ruff` - Linter and formatter
+- `mypy` - Static type checker
+- `taskipy` - Task runner
+
+## Code quality
+
+### Linting
+
+Check your code for style issues:
+
+```bash
+uv run ruff check .
+```
+
+Auto-fix many issues:
+
+```bash
+uv run ruff check . --fix
+```
+
+Lint specific files:
+
+```bash
+uv run ruff check main.py list_updater/
+```
+
+### Formatting
+
+Format code to match project style:
+
+```bash
+uv run ruff format .
+```
+
+Check formatting without making changes:
+
+```bash
+uv run ruff format . --check
+```
+
+**Format configuration:**
+- Line length: 120 characters
+- Quote style: double quotes
+- Target: Python 3.12
+
+### Type checking
+
+Run static type analysis:
+
+```bash
+uv run mypy .
+```
+
+Check specific files:
+
+```bash
+uv run mypy main.py list_updater/analytics.py
+```
+
+**Type checking configuration:**
+- Python version: 3.12
+- `warn_return_any`: enabled
+- `warn_unused_ignores`: enabled
+
+### Run all checks
+
+Run the full check suite:
+
+```bash
+uv run task check
+```
+
+This runs:
+1. Linting (`ruff check`)
+2. Format check (`ruff format --check`)
+3. Type checking (`mypy`)
+
+<Note>
+All checks must pass before submitting a pull request. The CI will run these checks automatically.
+</Note>
+
+## Linting rules
+
+The project uses these ruff rules:
+
+- **E** - pycodestyle errors (PEP 8 violations)
+- **F** - Pyflakes (undefined names, unused imports)
+- **I** - isort (import sorting)
+- **N** - pep8-naming (naming conventions)
+- **W** - pycodestyle warnings
+- **UP** - pyupgrade (modern Python syntax)
+
+## GitHub Actions integration
+
+The CLI is used in several GitHub Actions workflows:
+
+### Contribution Approved workflow
+
+`.github/workflows/contribution_approved.yml`
+
+```yaml
+- name: Process contribution
+  run: uv run main.py contribution process $GITHUB_EVENT_PATH
+```
+
+**Triggered:** When `approved` label is added to an issue
+
+**Outputs used:**
+- `commit_message` - For commit message
+- `commit_email` - For contributor attribution
+- `commit_username` - For contributor attribution
+- `error_message` - On failure
+
+### Update READMEs workflow
+
+`.github/workflows/update_readmes.yml`
+
+```yaml
+- name: Update READMEs
+  run: uv run main.py readme update
+```
+
+**Triggered:** 
+- On changes to `listings.json`
+- Manually via workflow_dispatch
+
+**Outputs used:**
+- `commit_message` - For commit message
+
+### Lint workflow
+
+`.github/workflows/lint.yml`
+
+```yaml
+- name: Run ruff
+  run: uv run ruff check .
+
+- name: Run mypy
+  run: uv run mypy .
+```
+
+**Triggered:** On changes to Python files (`.py`, `pyproject.toml`)
+
+## GitHub Actions outputs
+
+When writing commands that run in GitHub Actions, use the `set_output` helper:
+
+```python
+from list_updater.github import set_output, fail
+
+# Success case
+set_output("commit_message", "added listing: Software Engineer at Google")
+set_output("commit_email", "user@example.com")
+set_output("commit_username", "github_user")
+
+# Error case
+fail("This internship is already in our list")
+```
+
+**Available outputs:**
+- `commit_message` - Suggested commit message
+- `commit_email` - Email for git commit attribution
+- `commit_username` - Username for git commit attribution
+- `summary_comment` - Comment to post on issue (for bulk operations)
+- `error_message` - Error details on failure
+
+## Contribution workflow
+
+1. **Create a feature branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make your changes**
+   - Edit code in `main.py` or `list_updater/`
+   - Follow existing code style and patterns
+   - Use type hints for all function parameters and returns
+
+3. **Test your changes**
+   ```bash
+   # Run the command locally
+   uv run python main.py <your-command>
+   
+   # Validate data
+   uv run python main.py listings validate
+   ```
+
+4. **Run code quality checks**
+   ```bash
+   uv run ruff check .
+   uv run ruff format .
+   uv run mypy .
+   ```
+
+5. **Commit your changes**
+   ```bash
+   git add .
+   git commit -m "Add new feature: <description>"
+   ```
+
+6. **Push and create pull request**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+   Then open a pull request on GitHub.
+
+## Coding guidelines
+
+### File organization
+
+- **main.py** - Only CLI command definitions (Typer decorators)
+- **list_updater/commands.py** - Core commands (readme, contribution, mark-inactive, remove)
+- **list_updater/analytics.py** - Analytics commands (stats, validate, search, diff, fix)
+- **list_updater/category.py** - Category-related logic
+- **list_updater/listings.py** - Data loading and filtering
+- **list_updater/formatter.py** - Output formatting
+- **list_updater/github.py** - GitHub Actions integration
+- **list_updater/constants.py** - Configuration and constants
+
+### Naming conventions
+
+- **Commands:** `cmd_<group>_<action>` (e.g., `cmd_listings_search`)
+- **Internal helpers:** `_<name>` with underscore prefix (e.g., `_extract_urls`)
+- **Public API:** Exported in `__init__.py`
+
+### Type hints
+
+Always use type hints:
+
+```python
+def cmd_listings_search(
+    company: str | None = None,
+    title: str | None = None,
+    limit: int = 20,
+) -> None:
+    """Search and filter listings."""
+    ...
+```
+
+Use modern syntax:
+- `str | None` instead of `Optional[str]`
+- `list[dict[str, Any]]` instead of `List[Dict[str, Any]]`
+
+### Docstrings
+
+Use Google-style docstrings:
+
+```python
+def cmd_listings_validate(fix: bool = False) -> None:
+    """Validate listings.json schema and data integrity.
+
+    Args:
+        fix: If True, attempt to auto-fix issues where possible.
+    """
+```
+
+### Error handling
+
+For GitHub Actions commands, use `fail()` for errors:
+
+```python
+from list_updater.github import fail
+
+if not url and not listing_id:
+    fail("Must provide --url or --id")
+    return
+```
+
+For CLI-only commands, use print + sys.exit:
+
+```python
+import sys
+
+if issues:
+    print("❌ Validation failed")
+    sys.exit(1)
+```
+
+## Adding new commands
+
+### 1. Implement the command function
+
+Add to `list_updater/commands.py` or `list_updater/analytics.py`:
+
+```python
+def cmd_listings_export(format: str = "json") -> None:
+    """Export listings to a file.
+    
+    Args:
+        format: Output format (json, csv, yaml).
+    """
+    listings = get_listings_from_json()
+    
+    if format == "json":
+        print(json.dumps(listings, indent=2))
+    elif format == "csv":
+        # ... implement CSV export
+    else:
+        print(f"Unknown format: {format}")
+        sys.exit(1)
+```
+
+### 2. Export from __init__.py
+
+Add to `list_updater/__init__.py`:
+
+```python
+from list_updater.analytics import (
+    cmd_listings_export,  # Add this
+    ...
+)
+
+__all__ = [
+    "cmd_listings_export",  # Add this
+    ...
+]
+```
+
+### 3. Add CLI command in main.py
+
+Add to `main.py`:
+
+```python
+from list_updater import (
+    cmd_listings_export,  # Import
+    ...
+)
+
+@listings_app.command("export")
+def listings_export(
+    format: str = typer.Option("json", "--format", help="Output format (json, csv, yaml)"),
+) -> None:
+    """Export listings to a file."""
+    cmd_listings_export(format=format)
+```
+
+### 4. Test the command
+
+```bash
+uv run python main.py listings export --help
+uv run python main.py listings export --format json
+```
+
+## Best practices
+
+- **Keep commands focused** - Each command should do one thing well
+- **Use existing utilities** - Reuse functions from `listings.py`, `formatter.py`, etc.
+- **Validate input early** - Check parameters before doing expensive operations
+- **Provide helpful output** - Use emojis and formatting for readability
+- **Handle errors gracefully** - Show clear error messages
+- **Follow existing patterns** - Look at similar commands for consistency
+
+## Getting help
+
+If you have questions:
+
+1. Check the [Project Structure](/cli/development/project-structure) documentation
+2. Look at existing commands for examples
+3. Create a [miscellaneous issue](https://github.com/SimplifyJobs/Summer2026-Internships/issues/new/choose) on GitHub
+
+## Related documentation
+
+- [Project Structure](/cli/development/project-structure) - Understand the codebase
+- [Testing](/cli/development/testing) - Test your changes
+- [Installation](/cli/installation) - Setup for contributors

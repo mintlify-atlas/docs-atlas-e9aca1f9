@@ -1,0 +1,439 @@
+---
+title: "Listings commands"
+description: "Manage, search, and validate internship listings"
+---
+
+The `listings` command group provides tools for managing, searching, validating, and analyzing internship listings.
+
+## mark-inactive
+
+Bulk mark listings as inactive from a GitHub issue.
+
+```bash
+uv run python main.py listings mark-inactive <event_file>
+```
+
+<ParamField path="event_file" type="Path" required>
+  Path to the GitHub event JSON file containing the bulk_mark_inactive issue
+</ParamField>
+
+### What it does
+
+- Extracts URLs from the issue body
+- Marks each listing as `active: false`
+- Updates `date_updated` timestamp
+- Generates summary comment for the issue
+- Sets GitHub Actions outputs for commit message and attribution
+
+---
+
+## remove
+
+Remove a listing by URL or ID.
+
+```bash
+uv run python main.py listings remove --url <url>
+uv run python main.py listings remove --id <uuid>
+```
+
+<ParamField path="--url" type="string">
+  URL of the listing to remove
+</ParamField>
+
+<ParamField path="--id" type="string">
+  UUID of the listing to remove
+</ParamField>
+
+<ParamField path="--hide" type="boolean" default={false}>
+  Hide from all READMEs (sets `is_visible: false`)
+</ParamField>
+
+<ParamField path="--permanent" type="boolean" default={false}>
+  Permanently delete from listings.json (requires `--confirm`)
+</ParamField>
+
+<ParamField path="--confirm" type="boolean" default={false}>
+  Required with `--permanent` to confirm deletion
+</ParamField>
+
+### Removal modes
+
+**Default (mark inactive):**
+```bash
+uv run python main.py listings remove --url "https://example.com/job/123"
+```
+Sets `active: false` but keeps the listing in the database.
+
+**Hide from READMEs:**
+```bash
+uv run python main.py listings remove --url "https://example.com/job/123" --hide
+```
+Sets `is_visible: false` - listing stays in database but won't appear in any README.
+
+**Permanent deletion:**
+```bash
+uv run python main.py listings remove --url "https://example.com/job/123" --permanent --confirm
+```
+Completely removes the listing from listings.json. **Cannot be undone!**
+
+---
+
+## stats
+
+Show listing statistics (counts, categories, top companies).
+
+```bash
+uv run python main.py listings stats
+uv run python main.py listings stats --json
+```
+
+<ParamField path="--json" type="boolean" default={false}>
+  Output as JSON instead of formatted text
+</ParamField>
+
+### Statistics included
+
+- **Total listings** - Active, inactive, visible, hidden counts
+- **By category** - Breakdown of internships by job category
+- **By sponsorship** - Sponsorship status distribution
+- **By source** - Simplify vs community contributions
+- **Top 10 companies** - Companies with most listings
+
+### Example output
+
+```
+============================================================
+LISTING STATISTICS
+============================================================
+
+Total Listings: 1247
+  Active: 892 (71.5%)
+  Inactive: 355 (28.5%)
+  Visible: 1240
+  Hidden: 7
+
+By Category:
+  💻 Software Engineering: 847
+  📊 Data Science, AI & Machine Learning: 178
+  📈 Quantitative Finance: 92
+  📱 Product Management: 71
+  ⚙️ Hardware Engineering: 43
+  📋 Other: 16
+
+Top 10 Companies:
+  1. Google: 12 listings
+  2. Amazon: 11 listings
+  3. Microsoft: 9 listings
+  ...
+```
+
+---
+
+## validate
+
+Validate listings.json schema and data integrity.
+
+```bash
+uv run python main.py listings validate
+uv run python main.py listings validate --fix
+```
+
+<ParamField path="--fix" type="boolean" default={false}>
+  Attempt to auto-fix issues (currently limited functionality)
+</ParamField>
+
+### Validation checks
+
+**Schema validation:**
+- All required fields present (company_name, title, url, date_posted, etc.)
+- Valid data types
+
+**Data integrity:**
+- No duplicate URLs
+- No duplicate IDs
+- Valid timestamps (not in future)
+- Non-empty required fields
+- Valid categories
+
+**Filtering issues:**
+- Empty terms list (filtered from README)
+- Blocked companies (filtered from README)
+
+### Example output
+
+```
+============================================================
+VALIDATION RESULTS
+============================================================
+
+❌ ERRORS (3):
+  - [Acme Corp] Empty title (id: 98b2d671-3f03-430e-b18c)
+  - Duplicate URL found 2 times: https://example.com/job/456
+  - [TechCo] Missing required property: date_updated
+
+⚠️  WARNINGS (5):
+  - [StartupX] Missing/None category (id: f7a9b123-4567-890a-bcde)
+  - [DataCorp] Empty terms list - will be filtered from README
+
+Total: 1247 listings checked
+Errors: 3, Warnings: 5, Fixed: 0
+
+Run 'listings fix' to interactively fix issues.
+```
+
+---
+
+## search
+
+Search and filter listings.
+
+```bash
+uv run python main.py listings search [options]
+```
+
+<ParamField path="--company" type="string">
+  Filter by company name (case-insensitive substring match)
+</ParamField>
+
+<ParamField path="--title" type="string">
+  Filter by job title (case-insensitive substring match)
+</ParamField>
+
+<ParamField path="--location" type="string">
+  Filter by location (case-insensitive substring match)
+</ParamField>
+
+<ParamField path="--category" type="string">
+  Filter by category (case-insensitive substring match)
+</ParamField>
+
+<ParamField path="--active" type="boolean" default={false}>
+  Show only active listings
+</ParamField>
+
+<ParamField path="--inactive" type="boolean" default={false}>
+  Show only inactive listings
+</ParamField>
+
+<ParamField path="--limit" type="integer" default={20}>
+  Maximum number of results to show
+</ParamField>
+
+### Examples
+
+Search by company:
+```bash
+uv run python main.py listings search --company "Google"
+```
+
+Search active software engineering roles:
+```bash
+uv run python main.py listings search --category "Software" --active
+```
+
+Search remote positions with custom limit:
+```bash
+uv run python main.py listings search --location "Remote" --limit 50
+```
+
+Combine multiple filters:
+```bash
+uv run python main.py listings search --company "Meta" --title "Engineering" --active
+```
+
+### Search output
+
+```
+Found 3 matching listings
+================================================================================
+✅ [Software Engineering] Google
+   Software Engineering Intern, Summer 2026
+   📍 Mountain View, CA; New York, NY
+   📅 Posted: 2025-01-15
+   🔗 https://google.com/careers/job123
+
+✅ [Software Engineering] Google
+   Backend Engineering Intern
+   📍 Seattle, WA
+   📅 Posted: 2025-01-10
+   🔗 https://google.com/careers/job456
+```
+
+---
+
+## diff
+
+Show changes to listings since a date or commit.
+
+```bash
+uv run python main.py listings diff
+uv run python main.py listings diff --since "2025-01-01"
+uv run python main.py listings diff --commit abc123
+```
+
+<ParamField path="--since" type="string">
+  Show changes since this date (YYYY-MM-DD format)
+</ParamField>
+
+<ParamField path="--commit" type="string">
+  Show changes since this git commit hash
+</ParamField>
+
+### Diff modes
+
+**Default (compare with last commit):**
+```bash
+uv run python main.py listings diff
+```
+Shows additions, removals, and status changes from HEAD~1.
+
+**Since specific date:**
+```bash
+uv run python main.py listings diff --since "2025-01-01"
+```
+Shows all listings added or updated since January 1, 2025.
+
+**Since specific commit:**
+```bash
+uv run python main.py listings diff --commit abc123
+```
+Compares current listings with the specified commit.
+
+### Example output
+
+```
+Changes from previous commit
+============================================================
+
+➕ ADDED (5):
+  - Google: Software Engineering Intern
+  - Meta: Data Science Intern
+  - Amazon: Backend Engineer Intern
+  ...
+
+➖ REMOVED (2):
+  - StartupX: Full Stack Developer Intern
+  - OldCorp: Software Engineer Summer 2026
+
+🔄 STATUS CHANGES (8):
+  - Microsoft: Cloud Engineer Intern (active → inactive)
+  - Apple: Hardware Engineer Intern (inactive → active)
+  ...
+
+Total: +5 added, -2 removed, ~8 status changes
+```
+
+---
+
+## fix
+
+Interactively fix issues in listings.json.
+
+```bash
+uv run python main.py listings fix
+uv run python main.py listings fix --dry-run
+uv run python main.py listings fix --type empty
+uv run python main.py listings fix --auto
+```
+
+<ParamField path="--dry-run" type="boolean" default={false}>
+  Show fixes without saving changes
+</ParamField>
+
+<ParamField path="--type" type="string">
+  Only fix specific issue type: `empty`, `duplicate`, or `blocked`
+</ParamField>
+
+<ParamField path="--auto" type="boolean" default={false}>
+  Auto-accept all recommended fixes without prompting
+</ParamField>
+
+### Interactive fixing
+
+The `fix` command walks through issues one-by-one and prompts for action:
+
+**Empty titles:**
+- Suggests title based on category (e.g., "Software Engineering Intern")
+- Options: accept suggestion, fix custom, hide, delete, or skip
+
+**Invalid categories:**
+- Suggests category based on job title using ML classification
+- Shows list of valid categories with recommendation highlighted
+- Options: select category by number, skip, or quit
+
+**Duplicate URLs/IDs:**
+- Lists all duplicates with source labels
+- Recommends keeping Simplify-sourced listings (most reliable)
+- Options: choose which to keep (others are deleted), skip, or quit
+
+**Blocked companies:**
+- Shows company details
+- Options: hide from README, delete, skip, or quit
+
+### Fix examples
+
+**Preview fixes without saving:**
+```bash
+uv run python main.py listings fix --dry-run
+```
+
+**Only fix empty fields:**
+```bash
+uv run python main.py listings fix --type empty
+```
+
+**Only fix duplicates:**
+```bash
+uv run python main.py listings fix --type duplicate
+```
+
+**Auto-fix all issues:**
+```bash
+uv run python main.py listings fix --auto
+```
+Automatically accepts recommended fixes:
+- Empty titles → generates from category
+- Invalid categories → uses ML-suggested category or "Other"
+- Duplicates → keeps Simplify-sourced or newest
+- Blocked companies → hides from README
+
+**Preview auto-fixes:**
+```bash
+uv run python main.py listings fix --auto --dry-run
+```
+
+### Example session
+
+```
+Found 3 issues to review
+============================================================
+
+Issue 1/3: Empty Title
+----------------------------------------
+Company: TechCorp
+Category: Software Engineering
+ID: 98b2d671-3f03-430e-b18c
+URL: https://techcorp.com/careers/123
+Posted: 2025-01-15
+
+Suggested title: Software Engineering Intern
+[a]ccept suggestion  [f]ix custom  [h]ide  [d]elete  [s]kip  [q]uit: a
+→ Fixed: Set title to "Software Engineering Intern"
+
+...
+
+============================================================
+SUMMARY
+============================================================
+Fixed: 3
+Hidden: 0
+Deleted: 0
+Skipped: 0
+
+✅ Changes saved to .github/scripts/listings.json
+```
+
+## Related commands
+
+- [contribution process](/cli/commands/contribution#process) - Process GitHub issues
+- [readme update](/cli/commands/readme#update) - Update READMEs after changes

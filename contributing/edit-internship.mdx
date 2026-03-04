@@ -1,0 +1,108 @@
+---
+title: 'Edit an internship'
+description: 'Update or modify existing internship listings'
+---
+
+Need to update an existing internship? Whether you need to mark it as inactive, change details, or remove it, follow these steps.
+
+## When to Edit an Internship
+
+You might need to edit an internship if:
+- The application is closed or no longer available
+- The job title, location, or other details have changed
+- The category was incorrect
+- The degree requirements have changed
+- The company name changed or needs correction
+
+## How to Copy the Application URL
+
+<Steps>
+  <Step title="Locate the internship">
+    Find the internship you want to edit in the README table.
+  </Step>
+  
+  <Step title="Copy the link">
+    Right-click on the `APPLY` button and select **Copy link address**.
+  </Step>
+</Steps>
+
+<Note>
+  The application URL is critical - this is how we ensure your edit affects the correct internship.
+</Note>
+
+## Edit Workflow
+
+<Steps>
+  <Step title="Copy the application URL">
+    Right-click on the `APPLY` button for the internship you want to edit and select **Copy link address**.
+  </Step>
+  
+  <Step title="Create a new issue">
+    Go to the [issues page](https://github.com/SimplifyJobs/Summer2026-Internships/issues/new/choose) and click "New issue".
+  </Step>
+  
+  <Step title="Select the Edit Internship template">
+    Choose the **Edit Internship** issue template from the available options.
+  </Step>
+  
+  <Step title="Paste the URL">
+    Fill in the application URL you copied in the **link** input field.
+  </Step>
+  
+  <Step title="Update only the fields you want to change">
+    Leave every other input blank except for whichever fields you would like to update:
+    - **Category**: Change the internship category if needed
+    - **Advanced Degree Requirements**: Check or uncheck if the degree requirements have changed
+    - **Company name**: Update if the company name changed
+    - **Job title**: Modify if the title needs correction
+    - **Location**: Update if the location changed
+    - **Active status**: Mark as inactive if the position is closed
+    - Any other fields you want to modify
+  </Step>
+  
+  <Step title="Explain your changes (if needed)">
+    If it is not obvious why you are making these edits, please specify why in the reason box at the bottom of the form.
+  </Step>
+  
+  <Step title="Submit">
+    Click the "Submit new issue" button. A member of the team will review your revision and approve it shortly.
+  </Step>
+</Steps>
+
+## What Happens After Submission
+
+Once your edit is approved:
+1. The maintainer adds an `approved` label
+2. GitHub Actions automatically update `listings.json` with your changes
+3. The README is regenerated with the updated information
+4. The issue is automatically closed
+
+<Warning>
+  Only fill in the fields you want to change. Blank fields will not modify the existing data.
+</Warning>
+
+## Common Edit Scenarios
+
+### Marking as Inactive
+
+If an internship is no longer accepting applications:
+1. Copy the application URL
+2. Create an edit issue
+3. Set the active status to inactive
+4. Explain that the position has closed
+
+### Correcting Category
+
+If an internship was placed in the wrong category:
+1. Copy the application URL
+2. Create an edit issue
+3. Select the correct category from the dropdown
+4. Explain why the category should be changed
+
+### Updating Degree Requirements
+
+If the degree requirements changed:
+1. Copy the application URL
+2. Create an edit issue
+3. Check or uncheck the "Advanced Degree Requirements" box
+4. Explain what changed about the requirements

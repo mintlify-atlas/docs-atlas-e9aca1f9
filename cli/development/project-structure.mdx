@@ -1,0 +1,269 @@
+---
+title: "Project structure"
+description: "Understanding the codebase organization"
+---
+
+The list-updater CLI tool is organized into a main entry point and a modular library of utilities.
+
+## Directory structure
+
+```
+/
+├── main.py                      # CLI entry point (Typer)
+├── pyproject.toml               # Project configuration
+├── list_updater/                # Core library
+│   ├── __init__.py              # Public API exports
+│   ├── analytics.py             # Stats, validate, search, diff, fix commands
+│   ├── category.py              # Job category classification
+│   ├── commands.py              # Core CLI commands (readme, contribution, mark-inactive, remove)
+│   ├── constants.py             # Configuration constants and schemas
+│   ├── formatter.py             # Table and markdown formatting
+│   ├── github.py                # GitHub Actions utilities (set_output, fail)
+│   ├── listings.py              # Listing data operations (load, filter, sort)
+│   └── readme_generator.py      # README generation and table embedding
+└── .github/
+    └── scripts/
+        └── listings.json        # Internship data (source of truth)
+```
+
+## Core files
+
+### main.py
+
+The CLI entry point using [Typer](https://typer.tiangolo.com/).
+
+**Structure:**
+- Creates three command groups: `readme`, `contribution`, `listings`
+- Each command is a thin wrapper that calls functions from `list_updater/`
+- Handles argument parsing and validation
+
+**Command groups:**
+```python
+readme_app = typer.Typer(help="README operations")
+contribution_app = typer.Typer(help="Contribution processing")
+listings_app = typer.Typer(help="Listings management and analytics")
+```
+
+**Example command:**
+```python
+@listings_app.command("search")
+def listings_search(
+    company: str | None = typer.Option(None, "--company", "-c"),
+    title: str | None = typer.Option(None, "--title", "-t"),
+    ...
+):
+    """Search and filter listings."""
+    cmd_listings_search(company=company, title=title, ...)
+```
+
+### pyproject.toml
+
+Project configuration and dependencies.
+
+**Key sections:**
+- `[project]` - Package metadata (name, version, Python requirement)
+- `dependencies` - Runtime dependencies (typer)
+- `[dependency-groups]` - Development dependencies (ruff, mypy, taskipy)
+- `[tool.taskipy.tasks]` - Task shortcuts for linting and type checking
+- `[tool.ruff]` - Linter configuration
+- `[tool.mypy]` - Type checker configuration
+
+**Python version:** Requires 3.12+ for modern type hints (`type` statement, `|` union syntax)
+
+## Library modules
+
+### list_updater/__init__.py
+
+Public API that exports all functions used by `main.py` and GitHub Actions workflows.
+
+**Exports:**
+- Command implementations (8 functions starting with `cmd_`)
+- Constants (categories, thresholds, button templates)
+- Utility functions (filtering, formatting, GitHub Actions helpers)
+
+### list_updater/commands.py
+
+Core command implementations for README updates and contribution processing.
+
+**Functions:**
+- `cmd_readme_update()` - Generate all README files from listings.json
+- `cmd_contribution_process(event_file)` - Process new/edit internship issues
+- `cmd_listings_mark_inactive(event_file)` - Bulk mark listings as inactive
+- `cmd_listings_remove(...)` - Remove by URL/ID with hide/permanent options
+
+**Key logic:**
+- Parses GitHub issue form data
+- Validates and cleans user input
+- Updates listings.json atomically
+- Sets GitHub Actions output variables
+
+### list_updater/analytics.py
+
+Analytics and data quality commands.
+
+**Functions:**
+- `cmd_listings_stats(json_output)` - Statistics and counts
+- `cmd_listings_validate(fix)` - Schema and data validation
+- `cmd_listings_search(...)` - Filter and search listings
+- `cmd_listings_diff(since, commit)` - Show changes over time
+- `cmd_listings_fix(...)` - Interactive issue fixing
+
+**Key features:**
+- Comprehensive validation (schema, duplicates, categories)
+- Intelligent duplicate resolution (prefers Simplify source)
+- Auto-classification suggestions for invalid categories
+- Git integration for diff commands
+
+### list_updater/category.py
+
+Job category classification and management.
+
+**Key functions:**
+- `classify_job_category(listing)` - ML-based category classification from job title
+- `create_category_table(listings, category)` - Generate markdown table for a category
+- `ensure_categories(listings)` - Validate/fix category fields
+
+**Category mapping:**
+Maps various user inputs to canonical category names:
+- "software", "swe", "backend" → "Software Engineering"
+- "pm", "product" → "Product Management"
+- "data", "ml", "ai" → "Data Science, AI & Machine Learning"
+- "quant", "finance" → "Quantitative Finance"
+- "hardware", "embedded" → "Hardware Engineering"
+
+### list_updater/constants.py
+
+Configuration constants used throughout the codebase.
+
+**Key constants:**
+- `CATEGORIES` - Category definitions with emojis and names
+- `FAANG_PLUS` - List of top-tier companies (for 🔥 indicator)
+- `BLOCKED_COMPANIES` - Companies to exclude from README
+- `LISTING_SCHEMA_PROPS` - Required fields for validation
+- `SIMPLIFY_BUTTON` / `SHORT_APPLY_BUTTON` / `LONG_APPLY_BUTTON` - Apply button HTML
+- `SIMPLIFY_INACTIVE_THRESHOLD_MONTHS` - When to auto-mark Simplify listings inactive
+- `NON_SIMPLIFY_INACTIVE_THRESHOLD_MONTHS` - When to auto-mark community listings inactive
+
+### list_updater/formatter.py
+
+Markdown and HTML formatting utilities.
+
+**Key functions:**
+- `create_md_table(listings, include_age)` - Generate markdown table from listings
+- `get_link(listing)` - Format company name with link and indicators (🔥, 🎓, etc.)
+- `get_locations(listing)` - Format location string with indicators (🛂, 🇺🇸)
+- `convert_markdown_to_html(md)` - Convert markdown to HTML for meta tags
+- `get_minimal_css()` - CSS for HTML version of README
+
+**Special indicators:**
+- 🔥 - FAANG+ company
+- 🎓 - Advanced degree required (Master's/MBA/PhD)
+- 🛂 - Does not offer sponsorship
+- 🇺🇸 - U.S. citizenship required
+
+### list_updater/github.py
+
+GitHub Actions integration utilities.
+
+**Functions:**
+- `set_output(name, value)` - Set GitHub Actions output variable
+- `fail(message)` - Output error and set error_message output
+
+**Usage in commands:**
+```python
+set_output("commit_message", "added listing: Software Engineer at Google")
+set_output("commit_email", "user@example.com")
+set_output("commit_username", "github_user")
+```
+
+### list_updater/listings.py
+
+Listing data operations and utilities.
+
+**Key functions:**
+- `get_listings_from_json()` - Load listings from `.github/scripts/listings.json`
+- `check_schema(listings)` - Validate required fields
+- `sort_listings(listings)` - Sort by company name and date
+- `filter_active(listings)` - Filter to active only
+- `filter_summer(listings, year, earliest_date)` - Filter Summer term listings
+- `filter_off_season(listings)` - Filter Fall/Winter/Spring listings
+- `mark_stale_listings(listings)` - Auto-mark old listings as inactive
+
+**Filtering logic:**
+- Excludes blocked companies
+- Excludes hidden listings (`is_visible: false`)
+- Excludes listings with empty terms
+- Handles term matching ("Summer 2026", "Summer 2025/2026")
+
+### list_updater/readme_generator.py
+
+README file generation and embedding.
+
+**Key functions:**
+- `embed_table(listings, filename, active_only, inactive_only, off_season)` - Generate and embed tables into README
+- `check_and_insert_warning(content)` - Add file size warning if approaching GitHub limit
+
+**Process:**
+1. Reads README template
+2. Generates category tables
+3. Embeds tables between markers
+4. Checks file size against GitHub's 100MB limit
+5. Writes updated README
+
+## Data flow
+
+### Contribution flow
+
+1. User submits GitHub issue (new_internship or edit_internship)
+2. Maintainer adds `approved` label
+3. GitHub Action triggers → `contribution process $GITHUB_EVENT_PATH`
+4. Command parses issue body and updates listings.json
+5. GitHub Action commits with contributor attribution
+6. README update workflow triggers automatically
+
+### README update flow
+
+1. Listings.json changes (via contribution or external script)
+2. GitHub Action triggers → `readme update`
+3. Command loads, validates, sorts, and filters listings
+4. Generates three README files with category tables
+5. GitHub Action commits changes
+
+## Testing
+
+While there are no automated tests currently, you can test commands locally:
+
+**Validate data:**
+```bash
+uv run python main.py listings validate
+```
+
+**Test README generation (dry-run):**
+```bash
+# Backup first
+cp README.md README.md.bak
+
+# Test generation
+uv run python main.py readme update
+
+# Check diff
+git diff README.md
+
+# Restore if needed
+mv README.md.bak README.md
+```
+
+**Test search:**
+```bash
+uv run python main.py listings search --company "Test" --limit 5
+```
+
+**Test fix (dry-run):**
+```bash
+uv run python main.py listings fix --dry-run
+```
+
+## Related documentation
+
+- [Contributing to the CLI](/cli/development/contributing) - Development workflow
+- [Testing](/cli/development/testing) - Testing best practices

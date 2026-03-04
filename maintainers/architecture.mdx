@@ -1,0 +1,165 @@
+---
+title: 'Repository architecture'
+description: 'How the internship platform works under the hood'
+---
+
+This guide explains how the repository operates behind the scenes, including data storage, automation workflows, and integration with external services.
+
+## High Level Overview
+
+The internship list repository uses a combination of structured data storage, GitHub Actions automation, and external microservices to maintain an up-to-date database of tech internships.
+
+### Data Flow
+
+<Steps>
+  <Step title="Data sources">
+    Internships come from two sources:
+    - GitHub issue forms (`new_internship` and `edit_internship`)
+    - External microservice that fetches from Simplify's database
+  </Step>
+  
+  <Step title="Central storage">
+    All internships are stored in `.github/scripts/listings.json` as the single source of truth.
+  </Step>
+  
+  <Step title="Approval workflow">
+    When an `approved` label is attached to a contribution issue, GitHub Actions automatically process it.
+  </Step>
+  
+  <Step title="Data update">
+    The GitHub Action edits `listings.json` with the new or updated internship information.
+  </Step>
+  
+  <Step title="README generation">
+    Every time `listings.json` is updated, the "Update READMEs" GitHub Action regenerates all README files with the latest data.
+  </Step>
+</Steps>
+
+## Listings.json Storage
+
+### Purpose
+
+The `.github/scripts/listings.json` file serves as:
+- The single source of truth for all internship data
+- A structured, machine-readable format
+- Version-controlled history of all changes
+- Input for README generation
+
+### How It's Updated
+
+The file is edited by:
+
+1. **GitHub contribution workflow**
+   - User submits `new_internship` or `edit_internship` issue
+   - Maintainer adds `approved` label
+   - GitHub Action parses issue form data
+   - Action updates `listings.json` with new entry
+
+2. **External microservice**
+   - Runs daily on a schedule
+   - Fetches new internships from Simplify's database
+   - Adds them to `listings.json`
+   - Commits changes with "Simplify" as source
+
+## GitHub Actions Workflow
+
+The repository uses three main GitHub Actions workflows:
+
+### 1. Contribution Approved
+
+**File**: `.github/workflows/contribution_approved.yml`
+
+**Trigger**: When `approved` label is added to an issue
+
+**Process**:
+1. Reads the issue form data
+2. Validates the submission
+3. Runs `main.py contribution process` to update `listings.json`
+4. Commits changes with contributor attribution
+5. Auto-closes the issue
+6. If failure occurs, comments on issue with error details
+
+### 2. Update READMEs
+
+**File**: `.github/workflows/update_readmes.yml`
+
+**Trigger**: 
+- Changes to `listings.json`
+- Manual workflow dispatch
+
+**Process**:
+1. Reads all data from `listings.json`
+2. Categorizes internships by type
+3. Runs `main.py readme update` to regenerate README tables
+4. Applies special indicators (🔥, 🎓, 🛂, 🇺🇸)
+5. Commits and pushes updated README files
+
+### 3. Lint
+
+**File**: `.github/workflows/lint.yml`
+
+**Trigger**: Changes to Python code
+
+**Process**:
+1. Runs `ruff` for code style checks
+2. Runs `mypy` for type checking
+3. Reports any violations
+
+## Microservice Integration
+
+### External Script
+
+A private script runs externally once per day to:
+
+1. **Pull new internships**
+   - Connects to Simplify's database
+   - Identifies new Summer 2026 tech internships
+   - Extracts relevant data (company, title, location, URL, etc.)
+
+2. **Add to repository**
+   - Formats data according to `listings.json` schema
+   - Adds entries with `"source": "Simplify"`
+   - Commits changes to the repository
+
+3. **Trigger README update**
+   - Commit triggers the "Update READMEs" workflow
+   - New Simplify internships appear in README automatically
+
+### Why External?
+
+The script runs externally (not as a GitHub Action) because:
+- It requires access to Simplify's private database
+- It needs authentication credentials that shouldn't be in the public repo
+- It runs on Simplify's infrastructure with their security model
+
+## Contributor Attribution
+
+The system tracks where each internship came from:
+
+- **Community contributions**: `source` field contains the GitHub username of the contributor
+- **Simplify additions**: `source` field contains `"Simplify"`
+
+When commits are made for community contributions, git attribution includes:
+- Commit author: The contributor's GitHub username
+- Commit email: The contributor's GitHub email
+- Commit message: Indicates what was added/changed
+
+## Data Integrity
+
+Several mechanisms ensure data quality:
+
+1. **Schema validation**: CLI tools validate JSON schema
+2. **Duplicate detection**: System checks for duplicate URLs and IDs
+3. **Category validation**: Only valid categories are accepted
+4. **Manual review**: Maintainers review contributions before approval
+5. **Automated testing**: Lint workflow catches code issues
+
+## Performance Considerations
+
+The architecture is designed for efficiency:
+
+- **Single source of truth**: `listings.json` prevents data inconsistency
+- **Automatic README generation**: No manual README edits needed
+- **Incremental updates**: Only changed data triggers workflows
+- **Fast parsing**: JSON format is quick to read and write
+- **GitHub Action caching**: Dependencies are cached for faster runs

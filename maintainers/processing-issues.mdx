@@ -1,0 +1,258 @@
+---
+title: 'Processing contribution issues'
+description: 'How maintainers review and approve submissions'
+---
+
+This guide explains how maintainers should review and process contribution issues submitted by the community.
+
+## Overview
+
+When users submit internships via GitHub issues, maintainers are responsible for:
+1. Reviewing the submission for accuracy and completeness
+2. Verifying it meets repository requirements
+3. Approving or requesting changes
+4. Letting automation handle the rest
+
+## Approval Workflow
+
+<Steps>
+  <Step title="Review the submission">
+    Carefully examine the issue to ensure:
+    - All required fields are filled in correctly
+    - The internship is in a valid category
+    - The location is in US, Canada, or remote
+    - The company uses a formal ATS (Workday, Greenhouse, etc.)
+    - The internship doesn't already exist in the list
+    - The application URL is direct and functional
+  </Step>
+  
+  <Step title="Check for issues">
+    Look for common problems:
+    - Duplicate submissions
+    - Non-ATS application systems (forms, surveys)
+    - Invalid locations (outside US/Canada and not remote)
+    - Incorrect categorization
+    - Broken or redirected URLs
+    - Spam or low-quality submissions
+  </Step>
+  
+  <Step title="Request changes if needed">
+    If issues exist:
+    - Comment on the issue explaining what needs to be changed
+    - Be specific about what's wrong and how to fix it
+    - Tag the submitter for notification
+    - Wait for them to update the issue
+  </Step>
+  
+  <Step title="Add the approved label">
+    If no issues exist:
+    - Add the `approved` label to the issue
+    - This triggers the GitHub Action to process the submission
+    - No other manual action is needed
+  </Step>
+  
+  <Step title="Monitor automation">
+    After adding the `approved` label:
+    - The GitHub Action runs automatically
+    - It updates `listings.json` with the new internship
+    - It triggers README regeneration
+    - It closes the issue with a success comment
+  </Step>
+</Steps>
+
+## What to Check
+
+### Required Fields
+
+Ensure these fields are present and valid:
+
+- **Company name**: Real company, correctly spelled
+- **Job title**: Accurate and professional
+- **Category**: Appropriate for the role
+- **Location**: Valid US/Canada city or "Remote"
+- **Application URL**: Direct link to ATS application page
+- **Advanced degree**: Correctly indicated if Master's/MBA/PhD required
+
+### Valid Categories
+
+Verify the internship fits one of:
+- Software Engineering
+- Product Management
+- Data Science, AI & Machine Learning
+- Quantitative Finance
+- Hardware Engineering
+- Other (for tech-related roles not in above categories)
+
+### Location Validation
+
+Accept only:
+- US cities: "San Francisco, CA", "New York, NY"
+- Canadian cities: "Toronto, ON, Canada"
+- Remote: "Remote" or "Remote (US/Canada)"
+
+Reject:
+- International locations (outside US/Canada)
+- Vague locations ("Multiple locations")
+- Non-remote positions outside allowed regions
+
+### Application System
+
+Verify the company uses a formal ATS:
+
+**Accepted ATS platforms:**
+- Workday
+- Greenhouse
+- Ashby
+- Lever
+- iCIMS
+- Taleo
+- SmartRecruiters
+- BrassRing
+- Other recognized ATS
+
+**Not accepted (unless verified on Simplify):**
+- Google Forms
+- Typeform
+- SurveyMonkey
+- Custom company forms
+- Email applications
+
+### Duplicate Check
+
+Before approving:
+1. Search the README for the company name
+2. Check if the exact position already exists
+3. Look for similar roles (same title, different locations)
+4. If duplicate, ask submitter to use Edit Internship template instead
+
+## Handling Edge Cases
+
+### Multiple Locations
+
+If a single posting lists multiple locations:
+- **Accept**: This is fine, the system handles multiple locations
+- Ensure all locations are valid (US/Canada/Remote)
+
+### Same Company, Multiple Roles
+
+If a company has several internship types:
+- **Accept**: Each unique role should be a separate submission
+- Verify each role is genuinely different (not just location variants)
+
+### Uncertain Categories
+
+If the category is unclear:
+- Read the job description
+- Choose the most appropriate category
+- Use "Other" if it truly doesn't fit existing categories
+- Comment explaining the categorization decision
+
+### Non-Standard Degree Requirements
+
+If degree requirements are ambiguous:
+- **Check if advanced degree required**: Mark 🎓
+- **Preferred but not required**: Don't mark 🎓
+- **Explicitly for Master's/PhD programs**: Mark 🎓
+- When in doubt, check the original job posting
+
+## Error Handling
+
+### If the GitHub Action Fails
+
+When the automation encounters an error:
+
+<Steps>
+  <Step title="Check the issue">
+    The action will comment with error details on the issue.
+  </Step>
+  
+  <Step title="Identify the problem">
+    Common errors:
+    - Duplicate URL already in listings.json
+    - Missing required field
+    - Invalid JSON data
+    - Schema validation failure
+  </Step>
+  
+  <Step title="Fix the issue">
+    Either:
+    - Ask the submitter to create a new issue with corrections
+    - Manually edit listings.json if it's a simple fix
+    - Close the issue if it's a duplicate or invalid
+  </Step>
+  
+  <Step title="Re-trigger if needed">
+    If you fixed the data:
+    - Remove and re-add the `approved` label
+    - Or manually run the workflow from Actions tab
+  </Step>
+</Steps>
+
+### If the Issue Can't Be Approved
+
+Sometimes submissions can't be accepted:
+
+**Invalid submission reasons:**
+- Company doesn't use formal ATS
+- Location outside US/Canada and not remote
+- Internship already exists (duplicate)
+- Not a tech internship
+- Link is broken or incorrect
+
+**What to do:**
+1. Comment explaining why it can't be accepted
+2. Provide specific reasons
+3. Suggest alternatives if applicable
+4. Close the issue with "won't fix" or "invalid" label
+5. Thank them for their interest
+
+## Success Indicators
+
+After approval, you should see:
+
+1. **GitHub Action runs**: Check Actions tab for "Contribution Approved" workflow
+2. **listings.json updated**: New commit with internship added
+3. **README updated**: "Update READMEs" workflow runs next
+4. **Issue closed**: Automatically closed with success comment
+5. **Proper attribution**: Commit author shows contributor's username
+
+## Processing Timeline
+
+Typical timeline for a submission:
+
+- **0-24 hours**: Initial maintainer review
+- **0-48 hours**: Approval or change request
+- **Immediate**: Automation runs after approval
+- **1-2 minutes**: listings.json updated and committed
+- **1-2 minutes**: README regenerated
+- **Complete**: Issue closed, internship live
+
+## Best Practices
+
+### Quick Reviews
+
+- Process submissions daily if possible
+- Keep the approval pipeline moving
+- Don't let issues sit for weeks
+
+### Clear Communication
+
+- Be specific about what needs to change
+- Provide examples when helpful
+- Thank contributors for their submissions
+
+### Consistent Standards
+
+- Apply the same criteria to all submissions
+- Don't make exceptions for popular companies
+- Follow the documented requirements
+
+### Trust the Automation
+
+- Don't manually edit README files
+- Let GitHub Actions handle commits
+- Only manually edit listings.json for urgent fixes
+
+<Note>
+  The `approved` label is the trigger - once added, automation handles everything else. Your job is to ensure submissions are valid before approval.
+</Note>
