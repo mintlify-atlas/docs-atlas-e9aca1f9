@@ -1,0 +1,115 @@
+{
+  "projectType": "data-platform",
+  "projectName": "Summer 2026 Tech Internships",
+  "projectDescription": "Curated collection of Summer 2026 tech internships for students, maintained by Pitt CSC and Simplify.",
+  "theme": "maple",
+  "primaryColor": "#4A90E2",
+  "lightColor": "#6BADF5",
+  "darkColor": "#2E5C8A",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Internships",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "browse-internships",
+              "zero-to-offer"
+            ]
+          },
+          {
+            "group": "Internship Categories",
+            "pages": [
+              "categories/software-engineering",
+              "categories/product-management",
+              "categories/data-science",
+              "categories/quantitative-finance",
+              "categories/hardware-engineering"
+            ]
+          },
+          {
+            "group": "Off-Season",
+            "pages": [
+              "off-season/overview",
+              "off-season/fall-winter-spring"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Contributing",
+        "groups": [
+          {
+            "group": "How to Contribute",
+            "pages": [
+              "contributing/overview",
+              "contributing/add-internship",
+              "contributing/edit-internship",
+              "contributing/guidelines"
+            ]
+          },
+          {
+            "group": "Maintainers",
+            "pages": [
+              "maintainers/architecture",
+              "maintainers/listings-schema",
+              "maintainers/github-actions",
+              "maintainers/processing-issues"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "CLI Tool",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "cli/installation",
+              "cli/quickstart"
+            ]
+          },
+          {
+            "group": "Commands",
+            "pages": [
+              "cli/commands/readme",
+              "cli/commands/contribution",
+              "cli/commands/listings"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "cli/development/project-structure",
+              "cli/development/contributing",
+              "cli/development/testing"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "1736+ curated tech internship listings for Summer 2026",
+    "Five specialized categories: Software Engineering, Product Management, Data Science, Quant Finance, and Hardware Engineering",
+    "Off-season internship tracking for Fall 2025, Winter 2026, and Spring 2026",
+    "Automated GitHub Actions workflows for processing community contributions",
+    "Python CLI tool for managing, validating, and searching internship data",
+    "Structured JSON schema with rich metadata (locations, terms, company info, sponsorship status)",
+    "Community-driven with contributions from students and Simplify",
+    "Issue templates for adding, editing, and bulk-updating internship listings"
+  ],
+  "publicApiSurface": [
+    "uv run python main.py readme update",
+    "uv run python main.py contribution process <event_file>",
+    "uv run python main.py listings mark-inactive <event_file>",
+    "uv run python main.py listings remove --url <url>",
+    "uv run python main.py listings stats [--json]",
+    "uv run python main.py listings validate [--fix]",
+    "uv run python main.py listings search [--company] [--title] [--location] [--category]",
+    "uv run python main.py listings diff [--since] [--commit]",
+    "uv run python main.py listings fix [--dry-run] [--type] [--auto]"
+  ]
+}
